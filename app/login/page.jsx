@@ -1,11 +1,28 @@
-import {
-  IconBrandSketch,
-} from "@tabler/icons-react";
+"use client";
 
+import { IconBrandSketch, IconLoader2 } from "@tabler/icons-react";
 
 import { LoginForm } from "@/components/login-form";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginPage() {
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <IconLoader2 className="size-10 animate-spin mx-auto h-screen text-gray-500" />
+    );
+  }
+
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
