@@ -33,11 +33,11 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 const data = {
-  user: {
-    name: "Admin",
-    email: "admin@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  // user: {
+  //   name: "Admin",
+  //   email: "admin@example.com",
+  //   avatar: "/avatars/shadcn.jpg",
+  // },
   navMain: [
     {
       title: "Dashboard",
@@ -151,7 +151,6 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   const { data: session } = useSession();
-  console.log("session : ", session);
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>

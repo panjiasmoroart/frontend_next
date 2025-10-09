@@ -2,6 +2,9 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // tambahkan ini agar tidak error pada saat after build
+  // There is a problem with the server configuration
+  trustHost: true,
   providers: [
     Credentials({
       name: "Strapi",
@@ -41,6 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  // custom logged in user details
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
