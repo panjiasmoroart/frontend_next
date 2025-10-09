@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,22 +15,82 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
+  // FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export function LoginForm({ className, ...props }) {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!formData.email || !formData.password) {
+      toast.error("Email dan password wajib diisi");
+      setLoading(false);
+      return;
+    }
+
+    // 🔥 cek ke backend strapi dulu
+    const strapiRes = await fetch(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/auth/local`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: formData.email,
+          password: formData.password,
+        }),
+      }
+    );
+
+    const strapiData = await strapiRes.json();
+
+    if (!strapiRes.ok || !strapiData.jwt) {
+      toast.error(strapiData?.error?.message || "Login gagal");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ jika backend OK, lanjut signIn
+    const res = await signIn("credentials", {
+      redirect: false,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (res?.ok) {
+      toast.success("Berhasil login");
+      router.push("/dashboard");
+    } else {
+      toast.error(res?.error || "Login gagal");
+    }
+
+    setLoading(false);
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-xl">Login</CardTitle>
           <CardDescription>
-            Please enter your credentials to continue
+            Enter your credentials to access your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleLogin}>
             <FieldGroup>
               {/* <Field>
                 <Button variant="outline" type="button">
@@ -56,9 +119,12 @@ export function LoginForm({ className, ...props }) {
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  type="text"
+                  placeholder="user@example.com"
+                  disabled={loading}
                 />
               </Field>
               <Field>
@@ -71,10 +137,20 @@ export function LoginForm({ className, ...props }) {
                     Forgot your password?
                   </a> */}
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Enter password"
+                  disabled={loading}
+                />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription>

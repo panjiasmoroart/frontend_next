@@ -30,6 +30,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const data = {
   user: {
@@ -149,6 +150,9 @@ const data = {
 };
 
 export function AppSidebar({ ...props }) {
+  const { data: session } = useSession();
+  console.log("session : ", session);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -174,7 +178,7 @@ export function AppSidebar({ ...props }) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {session?.user && <NavUser user={session?.user} />}
       </SidebarFooter>
     </Sidebar>
   );
