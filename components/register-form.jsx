@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import axios from "axios";
 
 export function RegisterForm({ className, ...props }) {
   const [formData, setFormData] = useState({
@@ -40,8 +41,70 @@ export function RegisterForm({ className, ...props }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    toast.success(JSON.stringify(formData));
-    console.log(formData);
+
+    setLoading(true);
+
+    try {
+      if (
+        !formData.email ||
+        !formData.password ||
+        !formData.firstName ||
+        !formData.lastName
+      ) {
+        toast.error("Form wajib diisi");
+        setLoading(false);
+        return;
+      }
+
+      // Step 1: register with only email/password/username
+      const registerRes = await axios.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/auth/local/register`,
+        {
+          username: formData.email,
+          email: formData.email,
+          password: formData.password,
+        }
+      );
+
+      const jwt = registerRes.data.jwt;
+      const userId = registerRes.data.user.id;
+
+      // step 2: update the user with firstName and lastName
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${userId}`,
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      // step 3: sign in the user with next-auth
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (res?.ok) {
+        toast.success("Berhasil register");
+        router.replace("/dashboard");
+      } else {
+        toast.error("Login failed after registration. Please try again.");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error.response?.data?.error?.message ||
+          "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
