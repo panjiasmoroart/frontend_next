@@ -163,9 +163,7 @@ export function AppSidebar({ ...props }) {
             >
               <Link href="/dashboard">
                 <IconBrandSketch className="!size-5" />
-                <span className="text-base font-semibold">
-                  Next Inventory & POS
-                </span>
+                <span className="text-base font-semibold">Next POS</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

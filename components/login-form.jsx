@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 export function LoginForm({ className, ...props }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -152,17 +153,23 @@ export function LoginForm({ className, ...props }) {
                   {loading ? "Logging in..." : "Login"}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don't have an account?{" "}
+                  <Link
+                    href="/register"
+                    className="underline underline-offset-4"
+                  >
+                    Sign up
+                  </Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
+      {/* <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
+      </FieldDescription> */}
     </div>
   );
 }
