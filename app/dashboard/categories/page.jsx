@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Sheet } from "@/components/ui/sheet";
 import { DataTable } from "./features/data-table";
-import { columns } from "./features/columns";
+import { getColumns } from "./features/columns";
 import axiosInstance from "@/lib/axios";
 
 const Page = () => {
@@ -28,6 +28,7 @@ const Page = () => {
   const [meta, setMeta] = useState(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useState({ name: "", description: "" });
 
   const buildQuery = () => {
     const query = new URLSearchParams();
@@ -67,6 +68,8 @@ const Page = () => {
     setPageSize(Number(value));
     setPage(1);
   };
+
+  const columns = getColumns(filters);
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">

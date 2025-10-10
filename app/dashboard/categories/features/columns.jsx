@@ -1,5 +1,6 @@
 "use client";
 
+import ColumnFilter from "@/components/ColumnFilter";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,14 +11,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical } from "@tabler/icons-react";
 
-export const columns = [
+export const getColumns = (filters, handleFilterChange, onEdit, onDelete) => [
   {
     accessorKey: "name",
-    header: "Name",
+    header: () => (
+      <ColumnFilter
+        label="Name"
+        placeholder="Filter name..."
+        value={filters.name || ""}
+        onChange={(val) => handleFilterChange("name", val)}
+      />
+    ),
+    cell: (info) => info.getValue(),
   },
   {
     accessorKey: "description",
-    header: "Description",
+    header: () => (
+      <ColumnFilter
+        label="Description"
+        placeholder="Filter description..."
+        value={filters.description || ""}
+        onChange={(val) => handleFilterChange("description", val)}
+      />
+    ),
+    cell: (info) => info.getValue(),
   },
   {
     header: "Action",
