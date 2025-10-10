@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardAction,
@@ -20,26 +20,37 @@ import {
 import { Sheet } from "@/components/ui/sheet";
 import { DataTable } from "./features/data-table";
 import { columns } from "./features/columns";
-
-const data = [
-  {
-    id: "728ed52f",
-    amount: 100,
-    status: "pending",
-    email: "m@example.com",
-  },
-  {
-    id: "489e1d42",
-    amount: 125,
-    status: "processing",
-    email: "example@gmail.com",
-  },
-  // ...
-];
+import axiosInstance from "@/lib/axios";
 
 const Page = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const fetchData = () => {
+    setLoading(true);
+    axiosInstance
+      .get(`/api/categories`)
+      .then((response) => {
+        const apiData = response.data.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          documentId: item.documentId,
+        }));
+        setCategories(apiData);
+        setMeta(response.data.meta.pagination);
+      })
+      .catch((error) => {
+        console.log("Failed to fetch categories:", error);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">
@@ -74,7 +85,11 @@ const Page = () => {
         </CardHeader>
 
         <CardContent>
-          <DataTable columns={columns} data={data} />
+          {loading ? (
+            <p className="text-muted-foreground">Loading...</p>
+          ) : (
+            <DataTable columns={columns} data={categories} />
+          )}
         </CardContent>
       </Card>
     </div>
