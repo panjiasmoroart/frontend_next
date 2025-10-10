@@ -30,10 +30,23 @@ const Page = () => {
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState({ name: "", description: "" });
 
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
+
   const buildQuery = () => {
     const query = new URLSearchParams();
     query.set("pagination[page]", page);
     query.set("pagination[pageSize]", pageSize);
+
+    if (filters.name) {
+      query.set("filters[name][$containsi]", filters.name);
+    }
+
+    if (filters.description) {
+      query.set("filters[description][$containsi]", filters.description);
+    }
 
     return query.toString();
   };
@@ -41,9 +54,7 @@ const Page = () => {
   const fetchData = () => {
     setLoading(true);
     axiosInstance
-      .get(
-        `/api/categories?pagination[page]=${page}&pagination[pageSize]=${pageSize}`
-      )
+      .get(`/api/categories?${buildQuery()}`)
       .then((response) => {
         const apiData = response.data.data.map((item) => ({
           id: item.id,
@@ -62,14 +73,14 @@ const Page = () => {
 
   useEffect(() => {
     fetchData();
-  }, [page, pageSize]);
+  }, [page, pageSize, filters]);
 
   const handlePageSizeChange = (value) => {
     setPageSize(Number(value));
     setPage(1);
   };
 
-  const columns = getColumns(filters);
+  const columns = getColumns(filters, handleFilterChange);
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">
