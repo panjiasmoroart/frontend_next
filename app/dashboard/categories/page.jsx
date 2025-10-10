@@ -25,13 +25,24 @@ import axiosInstance from "@/lib/axios";
 const Page = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const buildQuery = () => {
+    const query = new URLSearchParams();
+    query.set("pagination[page]", page);
+    query.set("pagination[pageSize]", pageSize);
+
+    return query.toString();
+  };
 
   const fetchData = () => {
     setLoading(true);
     axiosInstance
-      .get(`/api/categories`)
+      .get(
+        `/api/categories?pagination[page]=${page}&pagination[pageSize]=${pageSize}`
+      )
       .then((response) => {
         const apiData = response.data.data.map((item) => ({
           id: item.id,
@@ -50,7 +61,12 @@ const Page = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, pageSize]);
+
+  const handlePageSizeChange = (value) => {
+    setPageSize(Number(value));
+    setPage(1);
+  };
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">
@@ -70,17 +86,17 @@ const Page = () => {
             >
               Add a new record
             </Button>
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            {/* <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               New
-              {/* <New
+              <New
                 item={selectedItem}
                 isOpen={sheetOpen}
                 onSuccess={() => {
                   setSheetOpen(false);
                   fetchData();
                 }}
-              /> */}
-            </Sheet>
+              />
+            </Sheet> */}
           </CardAction>
         </CardHeader>
 
@@ -90,6 +106,81 @@ const Page = () => {
           ) : (
             <DataTable columns={columns} data={categories} />
           )}
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-center mt-4 text-sm text-muted-foreground">
+            {meta && (
+              <>
+                {categories.length === 0
+                  ? "No rows"
+                  : `Showing ${(meta.page - 1) * meta.pageSize + 1} to ${
+                      (meta.page - 1) * meta.pageSize + categories.length
+                    } of ${meta.total} rows`}
+              </>
+            )}
+
+            <div className="flex items-center gap-2">
+              <Select
+                value={String(pageSize)}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="w-[80px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+              <span>Rows per page</span>
+            </div>
+
+            <span className="whitespace-nowrap">
+              Page {meta?.page} of {meta?.pageCount}
+            </span>
+
+            {/* pagination buttons */}
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+              >
+                «
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+              >
+                ‹
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, meta?.pageCount || 1))
+                }
+                disabled={page === meta?.pageCount}
+              >
+                ›
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setPage(meta?.pageCount)}
+                disabled={page === meta?.pageCount}
+              >
+                »
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
