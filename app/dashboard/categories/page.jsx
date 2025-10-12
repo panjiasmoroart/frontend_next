@@ -21,6 +21,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { DataTable } from "./features/data-table";
 import { getColumns } from "./features/columns";
 import axiosInstance from "@/lib/axios";
+import New from "./features/new";
 
 const Page = () => {
   const [categories, setCategories] = useState([]);
@@ -29,6 +30,7 @@ const Page = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState({ name: "", description: "" });
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -94,23 +96,22 @@ const Page = () => {
           <CardAction>
             <Button
               onClick={() => {
-                setSelectedItem(null);
+                // setSelectedItem(null);
                 setSheetOpen(true);
               }}
             >
               Add a new record
             </Button>
-            {/* <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-              New
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <New
-                item={selectedItem}
-                isOpen={sheetOpen}
-                onSuccess={() => {
-                  setSheetOpen(false);
-                  fetchData();
-                }}
+              // item={selectedItem}
+              // isOpen={sheetOpen}
+              // onSuccess={() => {
+              //   setSheetOpen(false);
+              //   fetchData();
+              // }}
               />
-            </Sheet> */}
+            </Sheet>
           </CardAction>
         </CardHeader>
 
