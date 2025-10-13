@@ -31,6 +31,7 @@ const Page = () => {
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState({ name: "", description: "" });
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -96,7 +97,7 @@ const Page = () => {
           <CardAction>
             <Button
               onClick={() => {
-                // setSelectedItem(null);
+                setSelectedItem(null);
                 setSheetOpen(true);
               }}
             >
@@ -104,12 +105,12 @@ const Page = () => {
             </Button>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <New
-              // item={selectedItem}
-              // isOpen={sheetOpen}
-              // onSuccess={() => {
-              //   setSheetOpen(false);
-              //   fetchData();
-              // }}
+                item={selectedItem}
+                isOpen={sheetOpen}
+                onSuccess={() => {
+                  setSheetOpen(false);
+                  fetchData();
+                }}
               />
             </Sheet>
           </CardAction>

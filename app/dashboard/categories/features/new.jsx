@@ -17,27 +17,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import axiosInstance from "@/lib/axios";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Required" }),
   description: z.string().optional(),
 });
 
-function onSubmit(values) {
-  try {
-    console.log(values);
-    toast(
-      <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-        <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-      </pre>
-    );
-  } catch (error) {
-    console.error("Form submission error", error);
-    toast.error("Failed to submit the form. Please try again.");
-  }
-}
-
-const New = () => {
+const New = ({ item = null, onSuccess, isOpen }) => {
+  const [loading, setLoading] = useState(false);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,10 +34,25 @@ const New = () => {
     },
   });
 
+  async function onSubmit(values) {
+    try {
+      setLoading(true);
+
+      await axiosInstance.post("/api/categories", { data: values });
+
+      if (onSuccess) {
+        onSuccess();
+      }
+      setLoading(false);
+    } catch (error) {
+      toast.error("Failed to submit the form. Please try again.");
+    }
+  }
+
   return (
     <SheetContent>
       <SheetHeader>
-        <SheetTitle> Add New Category</SheetTitle>
+        <SheetTitle> {item?.id ? "Edit" : " Add"} Category</SheetTitle>
       </SheetHeader>
 
       <Form {...form}>
@@ -61,7 +64,12 @@ const New = () => {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Category Name" type="" {...field} />
+                  <Input
+                    placeholder="Category Name"
+                    type=""
+                    {...field}
+                    disabled={loading}
+                  />
                 </FormControl>
 
                 <FormMessage />
@@ -79,6 +87,7 @@ const New = () => {
                   <Textarea
                     placeholder="Category Description"
                     className="resize-none"
+                    disabled={loading}
                     {...field}
                   />
                 </FormControl>
@@ -87,7 +96,9 @@ const New = () => {
               </FormItem>
             )}
           />
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
         </form>
       </Form>
     </SheetContent>
