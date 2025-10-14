@@ -18,6 +18,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import axiosInstance from "@/lib/axios";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, UploadCloud, X } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -25,11 +33,13 @@ const formSchema = z.object({
   price: z.coerce.number().gt(0, "Price is required"),
   stock: z.coerce.number().gt(0, "Stock is required"),
   barcode: z.string().min(1, "Barcode is required"),
-  // category: z.string().min(1, "Category is required"),
+  category: z.string().min(1, "Category is required"),
 });
 
 const New = ({ item = null, onSuccess, isOpen }) => {
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,7 +48,7 @@ const New = ({ item = null, onSuccess, isOpen }) => {
       price: 0,
       stock: 0,
       barcode: "",
-      // category: "",
+      category: "",
     },
   });
 
@@ -51,7 +61,7 @@ const New = ({ item = null, onSuccess, isOpen }) => {
         price: item.price || 0,
         stock: item.stock || 0,
         barcode: item.barcode || "",
-        // category: item.category?.documentId || "",
+        category: item.category?.documentId || "",
       });
     } else {
       form.reset({
@@ -60,30 +70,56 @@ const New = ({ item = null, onSuccess, isOpen }) => {
         price: 0,
         stock: 0,
         barcode: "",
-        // category: "",
+        category: "",
       });
     }
   }, [item, isOpen]);
 
-  async function onSubmit(values) {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const res = await axiosInstance.get("/api/categories");
+        setCategories(res.data.data);
+      } catch (error) {
+        toast.error("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
 
+    if (isOpen) fetchCategories();
+  }, [isOpen]);
+
+  async function onSubmit(values) {
+    setLoading(true);
+    try {
       if (item?.id) {
         await axiosInstance.put(`/api/products/${item.documentId}`, {
-          data: values,
+          data: {
+            ...values,
+            category: values.category,
+          },
         });
+
+        toast.success("Product updated successfully");
       } else {
-        await axiosInstance.post("/api/products", { data: values });
+        await axiosInstance.post("/api/products", {
+          data: {
+            ...values,
+            category: values.category,
+          },
+        });
+
+        toast.success("Product created successfully");
       }
 
-      toast.success("Product created successfully");
-      if (onSuccess) {
-        onSuccess();
-      }
-      setLoading(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
-      toast.error("Failed to submit the form. Please try again.");
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -110,6 +146,38 @@ const New = ({ item = null, onSuccess, isOpen }) => {
                   />
                 </FormControl>
 
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  {categoriesLoading ? (
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <Loader2 className="animate-spin w-4 h-4" />
+                      <span>Loading categories...</span>
+                    </div>
+                  ) : (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.documentId}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
