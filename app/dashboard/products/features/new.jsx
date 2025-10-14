@@ -54,18 +54,17 @@ const New = ({ item = null, onSuccess, isOpen }) => {
       setLoading(true);
 
       if (item?.id) {
-        await axiosInstance.put(`/api/categories/${item.documentId}`, {
+        await axiosInstance.put(`/api/products/${item.documentId}`, {
           data: values,
         });
       } else {
-        await axiosInstance.post("/api/categories", { data: values });
+        await axiosInstance.post("/api/products", { data: values });
       }
 
+      toast.success("Product created successfully");
       if (onSuccess) {
         onSuccess();
       }
-
-      toast.success("Category created successfully");
       setLoading(false);
     } catch (error) {
       toast.error("Failed to submit the form. Please try again.");
@@ -75,7 +74,7 @@ const New = ({ item = null, onSuccess, isOpen }) => {
   return (
     <SheetContent>
       <SheetHeader>
-        <SheetTitle> {item?.id ? "Edit" : " Add"} Category</SheetTitle>
+        <SheetTitle> {item?.id ? "Edit" : " Add"} Product</SheetTitle>
       </SheetHeader>
 
       <Form {...form}>
@@ -88,7 +87,7 @@ const New = ({ item = null, onSuccess, isOpen }) => {
                 <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Category Name"
+                    placeholder="Product Name"
                     type=""
                     {...field}
                     disabled={loading}
@@ -108,7 +107,7 @@ const New = ({ item = null, onSuccess, isOpen }) => {
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Category Description"
+                    placeholder="Product Description"
                     className="resize-none"
                     disabled={loading}
                     {...field}
