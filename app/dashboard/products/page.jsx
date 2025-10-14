@@ -30,7 +30,7 @@ const Page = () => {
   const [meta, setMeta] = useState(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [filters, setFilters] = useState({ name: "", description: "" });
+  const [filters, setFilters] = useState({ name: "", barcode: "" });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -43,13 +43,15 @@ const Page = () => {
     const query = new URLSearchParams();
     query.set("pagination[page]", page);
     query.set("pagination[pageSize]", pageSize);
+    query.set("populate[0]", "category");
+    query.set("populate[1]", "image");
 
     if (filters.name) {
       query.set("filters[name][$containsi]", filters.name);
     }
 
-    if (filters.description) {
-      query.set("filters[description][$containsi]", filters.description);
+    if (filters.barcode) {
+      query.set("filters[barcode][$eqi]", filters.barcode);
     }
 
     return query.toString();
@@ -60,13 +62,8 @@ const Page = () => {
     axiosInstance
       .get(`/api/products?${buildQuery()}`)
       .then((response) => {
-        const apiData = response.data.data.map((item) => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          documentId: item.documentId,
-        }));
-        setProducts(apiData);
+        console.log("Fetched products:", response.data.data);
+        setProducts(response.data.data);
         setMeta(response.data.meta.pagination);
       })
       .catch((error) => {

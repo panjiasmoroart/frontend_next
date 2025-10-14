@@ -10,8 +10,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical } from "@tabler/icons-react";
+import Image from "next/image";
 
 export const getColumns = (filters, handleFilterChange, onEdit, onDelete) => [
+  {
+    accessorKey: "image",
+    header: "Image",
+    cell: ({ row }) => (
+      <div className="h-12 w-12 rounded-full overflow-hidden">
+        {row.original.image && (
+          <Image
+            src={
+              process.env.NEXT_PUBLIC_STRAPI_URL +
+              row.original.image.formats.thumbnail.url
+            }
+            alt={row.original.name}
+            width={50}
+            height={50}
+            className="object-cover"
+          />
+        )}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "barcode",
+    header: () => (
+      <ColumnFilter
+        label="Barcode"
+        placeholder="Filter barcode..."
+        value={filters.barcode || ""}
+        onChange={(val) => handleFilterChange("barcode", val)}
+      />
+    ),
+    cell: (info) => info.getValue(),
+  },
   {
     accessorKey: "name",
     header: () => (
@@ -24,18 +57,9 @@ export const getColumns = (filters, handleFilterChange, onEdit, onDelete) => [
     ),
     cell: (info) => info.getValue(),
   },
-  {
-    accessorKey: "description",
-    header: () => (
-      <ColumnFilter
-        label="Description"
-        placeholder="Filter description..."
-        value={filters.description || ""}
-        onChange={(val) => handleFilterChange("description", val)}
-      />
-    ),
-    cell: (info) => info.getValue(),
-  },
+  { accessorKey: "category.name", header: "Category" },
+  { accessorKey: "price", header: "Price" },
+  { accessorKey: "stock", header: "Stock" },
   {
     header: "Action",
     id: "actions",
