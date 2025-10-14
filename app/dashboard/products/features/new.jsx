@@ -20,8 +20,12 @@ import { Textarea } from "@/components/ui/textarea";
 import axiosInstance from "@/lib/axios";
 
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Required" }),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  price: z.coerce.number().gt(0, "Price is required"),
+  stock: z.coerce.number().gt(0, "Stock is required"),
+  barcode: z.string().min(1, "Barcode is required"),
+  // category: z.string().min(1, "Category is required"),
 });
 
 const New = ({ item = null, onSuccess, isOpen }) => {
@@ -31,6 +35,10 @@ const New = ({ item = null, onSuccess, isOpen }) => {
     defaultValues: {
       name: "",
       description: "",
+      price: 0,
+      stock: 0,
+      barcode: "",
+      // category: "",
     },
   });
 
@@ -40,11 +48,19 @@ const New = ({ item = null, onSuccess, isOpen }) => {
       form.reset({
         name: item.name || "",
         description: item.description || "",
+        price: item.price || 0,
+        stock: item.stock || 0,
+        barcode: item.barcode || "",
+        // category: item.category?.documentId || "",
       });
     } else {
       form.reset({
         name: "",
         description: "",
+        price: 0,
+        stock: 0,
+        barcode: "",
+        // category: "",
       });
     }
   }, [item, isOpen]);
@@ -101,23 +117,80 @@ const New = ({ item = null, onSuccess, isOpen }) => {
 
           <FormField
             control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Product price"
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="stock"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Product stock"
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="barcode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Barcode</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Product barcode"
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="description"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Product Description"
+                    placeholder="Product description"
                     className="resize-none"
-                    disabled={loading}
                     {...field}
+                    disabled={loading}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <Button type="submit" disabled={loading}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>
