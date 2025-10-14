@@ -83,7 +83,10 @@ const Page = () => {
     setPage(1);
   };
 
-  const columns = getColumns(filters, handleFilterChange);
+  const columns = getColumns(filters, handleFilterChange, (item) => {
+    setSelectedItem(item);
+    setSheetOpen(true);
+  });
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">

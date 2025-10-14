@@ -1,5 +1,5 @@
+import { useEffect, useState } from "react";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,11 +34,32 @@ const New = ({ item = null, onSuccess, isOpen }) => {
     },
   });
 
+  useEffect(() => {
+    if (!isOpen) return;
+    if (item) {
+      form.reset({
+        name: item.name || "",
+        description: item.description || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        description: "",
+      });
+    }
+  }, [item, isOpen]);
+
   async function onSubmit(values) {
     try {
       setLoading(true);
 
-      await axiosInstance.post("/api/categories", { data: values });
+      if (item?.id) {
+        await axiosInstance.put(`/api/categories/${item.documentId}`, {
+          data: values,
+        });
+      } else {
+        await axiosInstance.post("/api/categories", { data: values });
+      }
 
       if (onSuccess) {
         onSuccess();
