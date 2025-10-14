@@ -22,6 +22,7 @@ import { DataTable } from "./features/data-table";
 import { getColumns } from "./features/columns";
 import axiosInstance from "@/lib/axios";
 import New from "./features/new";
+import { toast } from "sonner";
 
 const Page = () => {
   const [categories, setCategories] = useState([]);
@@ -83,10 +84,28 @@ const Page = () => {
     setPage(1);
   };
 
-  const columns = getColumns(filters, handleFilterChange, (item) => {
-    setSelectedItem(item);
-    setSheetOpen(true);
-  });
+  const handleDelete = async (item) => {
+    if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
+
+    try {
+      await axiosInstance.delete(`/api/categories/${item.documentId}`);
+      await fetchData();
+      toast.success("Category deleted successfully");
+    } catch (error) {
+      console.log("Delete failed: ", error);
+      toast.error("Failed to delete category");
+    }
+  };
+
+  const columns = getColumns(
+    filters,
+    handleFilterChange,
+    (item) => {
+      setSelectedItem(item);
+      setSheetOpen(true);
+    },
+    handleDelete
+  );
 
   return (
     <div className="py-4 md:py-6 px-4 lg:px-6">
