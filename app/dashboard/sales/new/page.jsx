@@ -55,6 +55,9 @@ const TAX_RATE = 0.08; // 8% tax
 export default function NewInvoicePage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const searchTimeout = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const form = useForm({
@@ -81,6 +84,39 @@ export default function NewInvoicePage() {
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
+
+  useEffect(() => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const res = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/products?filters[name][$containsi]=${searchTerm}&pagination[pageSize]=25`
+        );
+        const products = res.data.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          stock: item.stock,
+        }));
+
+        console.log(searchTerm);
+        setSearchResults(products);
+      } catch (error) {
+        console.error("Search failed", error);
+      } finally {
+        setLoading(false);
+      }
+    });
+  }, [searchTerm]);
 
   async function onSubmit(data) {
     console.log(data);
@@ -199,6 +235,23 @@ export default function NewInvoicePage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by product name..."
               />
+
+              {loading && <p className="text-sm my-2">Searching...</p>}
+
+              {searchResults.length > 0 && (
+                <ScrollArea className="border rounded p-2 max-h-60 mt-2">
+                  {searchResults.map((product) => (
+                    <div
+                      key={product.id}
+                      className="cursor-pointer p-2 hover:bg-muted rounded"
+                      onClick={() => handleSelectProduct(product)}
+                    >
+                      {product.name} - ${product.price} - {product.stock} in
+                      stock
+                    </div>
+                  ))}
+                </ScrollArea>
+              )}
             </div>
 
             <Separator />
