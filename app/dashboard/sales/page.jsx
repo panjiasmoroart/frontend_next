@@ -21,6 +21,7 @@ import { DataTable } from "./features/data-table";
 import { getColumns } from "./features/columns";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
   const [sales, setSales] = useState([]);
@@ -31,6 +32,7 @@ const Page = () => {
   const [filters, setFilters] = useState({ name: "", description: "" });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const router = useRouter();
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -127,12 +129,7 @@ const Page = () => {
           </CardDescription>
 
           <CardAction>
-            <Button
-              onClick={() => {
-                setSelectedItem(null);
-                setSheetOpen(true);
-              }}
-            >
+            <Button onClick={() => router.push("/dashboard/sales/new")}>
               Add a new invoice
             </Button>
           </CardAction>
