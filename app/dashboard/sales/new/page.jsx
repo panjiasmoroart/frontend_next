@@ -73,6 +73,11 @@ export default function NewInvoicePage() {
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "products",
+  });
+
   function formatDateTimeLocal(date) {
     const pad = (n) => String(n).padStart(2, "0");
 
@@ -84,6 +89,31 @@ export default function NewInvoicePage() {
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
+
+  const handleSelectProduct = (product) => {
+    const productExists = form
+      .getValues("products")
+      .find((p) => p.productId === product.id.toString());
+
+    if (productExists) {
+      toast.error("Product already added");
+    } else {
+      append({
+        productId: product.id.toString(),
+        name: product.name,
+        quantity: 1,
+        price: Number(product.price),
+        stock: product.stock,
+      });
+
+      setSearchTerm("");
+      setSearchResults([]);
+    }
+  };
+
+  const calculateAmount = (quantity, price) => {
+    return quantity * price;
+  };
 
   useEffect(() => {
     if (searchTimeout.current) {
@@ -108,7 +138,6 @@ export default function NewInvoicePage() {
           stock: item.stock,
         }));
 
-        console.log(searchTerm);
         setSearchResults(products);
       } catch (error) {
         console.error("Search failed", error);
@@ -180,7 +209,6 @@ export default function NewInvoicePage() {
                 )}
               />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -224,9 +252,7 @@ export default function NewInvoicePage() {
                 )}
               />
             </div>
-
             <Separator />
-
             <Label className="mb-4 text-lg text-primary">Product details</Label>
             <div>
               <Label className="mb-2">Search Products</Label>
@@ -254,8 +280,64 @@ export default function NewInvoicePage() {
               )}
             </div>
 
-            <Separator />
+            {fields?.map((item, index) => (
+              <div
+                key={index}
+                className="border p-3 rounded mb-2 grid grid-cols-1 md:grid-cols-5 gap-4 items-center"
+              >
+                <div>
+                  <Label className="mb-2">Product</Label>
+                  <Input value={item.name} readOnly />
+                </div>
 
+                <div>
+                  <Label className="mb-2">Quantity</Label>
+                  <Input
+                    type="number"
+                    {...form.register(`products.${index}.quantity`, {
+                      valueAsNumber: true,
+                      min: 1,
+                    })}
+                    defaultValue={item.quantity || 0}
+                  />
+                </div>
+
+                <div>
+                  <Label className="mb-2">Price</Label>
+                  <Input
+                    type="number"
+                    {...form.register(`products.${index}.price`, {
+                      valueAsNumber: true,
+                      min: 0,
+                    })}
+                    defaultValue={item.price}
+                  />
+                </div>
+
+                <div>
+                  <Label className="mb-2">Amount</Label>
+                  <Input
+                    className="text-primary"
+                    value={calculateAmount(
+                      form.getValues(`products.${index}.quantity`) || 0,
+                      form.getValues(`products.${index}.price`) || 0
+                    )}
+                    readOnly
+                  />
+                </div>
+
+                <div className="pt-6">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => remove(index)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ))}
+            <Separator />
             <Label className="mb-4 text-lg text-primary">Invoice summary</Label>
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="col-span-4">
