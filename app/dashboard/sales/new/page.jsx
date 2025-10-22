@@ -177,7 +177,51 @@ export default function NewInvoicePage() {
   }, [searchTerm]);
 
   async function onSubmit(data) {
-    console.log(data);
+    if (data.products.length === 0) {
+      toast.error("At least one product is required.");
+      return;
+    }
+
+    try {
+      const salePayload = {
+        customer_name: data.customer_name,
+        invoice_number: data.invoice_number,
+        customer_email: data.customer_email,
+        customer_phone: data.customer_phone,
+        date: data.date,
+        notes: data.notes,
+        products: data.products.map((item) => ({
+          product: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subtotal,
+        discount_amount: discountAmount,
+        tax_amount: taxAmount,
+        total,
+      };
+
+      const saleResponse = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/sale-transactions`,
+        {
+          data: salePayload,
+        }
+      );
+
+      if (!saleResponse.data.data?.id) {
+        throw new Error("Failed to create sale.");
+      }
+
+      toast.success("Invoice and stock updated successfully!");
+      router.push("/dashboard/sales");
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      toast.error(
+        `Transaction failed: ${error.message || "An error occurred."}`
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
