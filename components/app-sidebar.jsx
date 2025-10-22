@@ -133,7 +133,7 @@ const data = {
   documents: [
     {
       name: "Today Sales",
-      url: "/dashboard/reports/toady-sales",
+      url: "/dashboard/reports/today-sales",
       icon: IconCalendar,
     },
     {

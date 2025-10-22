@@ -24,23 +24,35 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function NavDocuments({ items }) {
   const { isMobile } = useSidebar();
+  const pathname = usePathname();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Reports</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
-            {/* <DropdownMenu>
+        {items.map((item) => {
+          const isActive = pathname === item.url;
+
+          return (
+            <SidebarMenuItem key={item.name}>
+              <SidebarMenuButton asChild>
+                <a
+                  href={item.url}
+                  className={cn(
+                    isActive && "bg-muted text-primary",
+                    "hover:bg-muted/50 transition-colors"
+                  )}
+                >
+                  <item.icon />
+                  <span>{item.name}</span>
+                </a>
+              </SidebarMenuButton>
+              {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuAction
                   showOnHover
@@ -70,8 +82,9 @@ export function NavDocuments({ items }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu> */}
-          </SidebarMenuItem>
-        ))}
+            </SidebarMenuItem>
+          );
+        })}
         <Link href="/dashboard/reports">
           <SidebarMenuItem>
             <SidebarMenuButton className="text-sidebar-foreground/70">
