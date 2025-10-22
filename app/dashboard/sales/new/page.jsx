@@ -55,9 +55,13 @@ const TAX_RATE = 0.08; // 8% tax
 export default function NewInvoicePage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const searchTimeout = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [total, setTotal] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const form = useForm({
@@ -71,6 +75,11 @@ export default function NewInvoicePage() {
       date: new Date(),
       notes: "",
     },
+  });
+
+  const watchedProducts = useWatch({
+    control: form.control,
+    name: "products",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -114,6 +123,26 @@ export default function NewInvoicePage() {
   const calculateAmount = (quantity, price) => {
     return quantity * price;
   };
+
+  useEffect(() => {
+    let newSubtotal = 0;
+    fields.forEach((item) => {
+      newSubtotal += calculateAmount(
+        form.getValues(`products.${fields.indexOf(item)}.quantity`),
+        form.getValues(`products.${fields.indexOf(item)}.price`)
+      );
+    });
+
+    setSubtotal(newSubtotal | 0);
+    setDiscountAmount((newSubtotal * DISCOUNT_RATE) | 0);
+    setTaxAmount(((newSubtotal - newSubtotal * DISCOUNT_RATE) * TAX_RATE) | 0);
+    setTotal(
+      (newSubtotal -
+        newSubtotal * DISCOUNT_RATE +
+        (newSubtotal - newSubtotal * DISCOUNT_RATE) * TAX_RATE) |
+        0
+    );
+  }, [fields, watchedProducts]);
 
   useEffect(() => {
     if (searchTimeout.current) {
@@ -362,19 +391,19 @@ export default function NewInvoicePage() {
               <div className="col-span-2 flex flex-col justify-end space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${0}</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Discount ({0}):</span>
-                  <span>-${0}</span>
+                  <span>Discount ({DISCOUNT_RATE * 100}%):</span>
+                  <span>-${discountAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tax ({0}%):</span>
-                  <span>${0}</span>
+                  <span>Tax ({TAX_RATE * 100}%):</span>
+                  <span>${taxAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Total:</span>
-                  <span>${0}</span>
+                  <span>${total.toFixed(2)}</span>
                 </div>
                 <div className="flex gap-2 w-full items-center">
                   <Button type="submit" disabled={saving}>
