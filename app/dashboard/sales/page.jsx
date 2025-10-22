@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable } from "./features/data-table";
+import { DataTable } from "@/components/data-table";
 import { getColumns } from "./features/columns";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
