@@ -13,8 +13,29 @@ import { Separator } from "@/components/ui/separator";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
+const categories = Array.from(
+  { length: 20 },
+  (_, index) => `Category ${index + 1}`
+);
+const products = Array.from({ length: 30 }, (_, index) => ({
+  id: index + 1,
+  name: `Product ${index + 1}`,
+  price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
+  category: categories[index % categories.length],
+  image: "/placeholder.ppng",
+}));
+
 export default function POS() {
   const [cartVisible, setCartVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [cart, setCart] = useState([]);
+  const [discount, setDiscount] = useState(5);
+  const [taxRate, setTaxRate] = useState(0.1);
+  // const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  // const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const { status } = useSession();
 
   if (status === "loading")
@@ -25,6 +46,14 @@ export default function POS() {
   if (status === "unauthenticated") {
     redirect("/login");
   }
+
+  const filteredProducts = products.filter(
+    (p) =>
+      (selectedCategory === "All" || p.category === selectedCategory) &&
+      p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // console.log("Filtered Products : ", filteredProducts);
 
   return (
     <div className="flex flex-col md:flex-row h-screen relative bg-background text-foreground">
@@ -52,54 +81,51 @@ export default function POS() {
           </div>
 
           {/* Search Bar */}
-          {/* <Input
+          <Input
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="mb-2 w-full"
-          /> */}
+          />
         </div>
 
         {/* Categories */}
         <div className="flex gap-2 overflow-x-auto sticky top-[6.5rem] bg-background py-2 z-10">
-          {/* {loadingCategories ? (
+          {loadingCategories ? (
             <div className="flex items-center gap-2 mt-10 w-full">
               <IconLoader2 className="size-5 animate-spin text-gray-500" />
               <p>Loading categories...</p>
             </div>
           ) : (
-            [{ id: null, name: "All" }, ...categories].map((cat) => (
+            ["All", ...categories].map((cat) => (
               <Button
-                key={cat?.id ?? "all"}
-                variant={cat?.id === selectedCategory ? "default" : "outline"}
-                onClick={() => setSelectedCategory(cat?.id)}
+                key={cat}
+                variant={cat === selectedCategory ? "default" : "outline"}
+                onClick={() => setSelectedCategory(cat)}
                 className="whitespace-nowrap"
               >
-                {cat?.name}
+                {cat}
               </Button>
             ))
-          )} */}
+          )}
         </div>
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-5">
-          {/* {loadingProducts ? (
+          {loadingProducts ? (
             <div className="flex items-center gap-2 mt-10 w-full">
               <IconLoader2 className="size-5 animate-spin text-gray-500" />
               <p>Loading products...</p>
             </div>
           ) : (
-            products.map((product, index) => (
+            filteredProducts.map((product, index) => (
               <Card
                 key={index}
                 onClick={() => addToCart(product)}
                 className="w-full cursor-pointer overflow-hidden rounded-lg border border-primary shadow-sm p-0 hover:opacity-80"
               >
                 <img
-                  src={
-                    process.env.NEXT_PUBLIC_STRAPI_URL + product.image.url ||
-                    "/product.png"
-                  }
+                  src="/product.png"
                   alt="Product Image"
                   width={600}
                   height={400}
@@ -116,7 +142,7 @@ export default function POS() {
                 </CardContent>
               </Card>
             ))
-          )} */}
+          )}
         </div>
       </div>
 
