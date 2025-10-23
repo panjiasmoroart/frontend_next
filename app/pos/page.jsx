@@ -28,15 +28,16 @@ import { toast } from "sonner";
 
 export default function POS() {
   const [cartVisible, setCartVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
   const [discount, setDiscount] = useState(5);
   const [taxRate, setTaxRate] = useState(0.1);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
-  // const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { status } = useSession();
 
   const fetchCategories = async () => {
@@ -53,11 +54,52 @@ export default function POS() {
     }
   };
 
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const params = new URLSearchParams();
+
+      // params.append("populate[0]", "image");
+
+      if (debouncedSearch) {
+        params.append("filters[name][$containsi]", debouncedSearch);
+      }
+
+      if (selectedCategory !== null) {
+        params.append("filters[category][id][$eqi]", selectedCategory);
+      }
+
+      const res = await axiosInstance.get(`/api/products?${params.toString()}`);
+
+      setProducts(res.data.data);
+    } catch (error) {
+      console.log("Failed to fetch products", error);
+      toast.error("Failed to fetch products");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  // Debounce the search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchCategories();
     }
   }, [status]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchProducts();
+    }
+  }, [debouncedSearch, selectedCategory, status]);
 
   if (status === "loading")
     return (
@@ -68,19 +110,19 @@ export default function POS() {
     redirect("/login");
   }
 
-  const products = Array.from({ length: 30 }, (_, index) => ({
-    id: index + 1,
-    name: `Product ${index + 1}`,
-    price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
-    category: categories[index % categories.length],
-    image: "/placeholder.ppng",
-  }));
+  // const products = Array.from({ length: 30 }, (_, index) => ({
+  //   id: index + 1,
+  //   name: `Product ${index + 1}`,
+  //   price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
+  //   category: categories[index % categories.length],
+  //   image: "/placeholder.ppng",
+  // }));
 
-  const filteredProducts = products.filter(
-    (p) =>
-      (selectedCategory === "All" || p.category === selectedCategory) &&
-      p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // const filteredProducts = products.filter(
+  //   (p) =>
+  //     (selectedCategory === "All" || p.category === selectedCategory) &&
+  //     p.name.toLowerCase().includes(search.toLowerCase())
+  // );
 
   // console.log("Filtered Products : ", filteredProducts);
 
@@ -191,7 +233,7 @@ export default function POS() {
               <p>Loading products...</p>
             </div>
           ) : (
-            filteredProducts.map((product, index) => (
+            products.map((product, index) => (
               <Card
                 key={index}
                 onClick={() => addToCart(product)}
