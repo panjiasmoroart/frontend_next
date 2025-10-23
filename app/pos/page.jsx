@@ -13,17 +13,18 @@ import { Separator } from "@/components/ui/separator";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
-const categories = Array.from(
-  { length: 20 },
-  (_, index) => `Category ${index + 1}`
-);
-const products = Array.from({ length: 30 }, (_, index) => ({
-  id: index + 1,
-  name: `Product ${index + 1}`,
-  price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
-  category: categories[index % categories.length],
-  image: "/placeholder.ppng",
-}));
+// const categories = Array.from(
+//   { length: 20 },
+//   (_, index) => `Category ${index + 1}`
+// );
+
+// const products = Array.from({ length: 30 }, (_, index) => ({
+//   id: index + 1,
+//   name: `Product ${index + 1}`,
+//   price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
+//   category: categories[index % categories.length],
+//   image: "/placeholder.ppng",
+// }));
 
 export default function POS() {
   const [cartVisible, setCartVisible] = useState(false);
@@ -32,11 +33,31 @@ export default function POS() {
   const [cart, setCart] = useState([]);
   const [discount, setDiscount] = useState(5);
   const [taxRate, setTaxRate] = useState(0.1);
-  // const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   // const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const { status } = useSession();
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const res = await axiosInstance.get("/api/categories");
+
+      setCategories(res.data.data);
+    } catch (error) {
+      console.log("Failed to fetch categories", error);
+      toast.error("Failed to fetch categories");
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchCategories();
+    }
+  }, [status]);
 
   if (status === "loading")
     return (
@@ -46,6 +67,14 @@ export default function POS() {
   if (status === "unauthenticated") {
     redirect("/login");
   }
+
+  const products = Array.from({ length: 30 }, (_, index) => ({
+    id: index + 1,
+    name: `Product ${index + 1}`,
+    price: parseFloat((Math.random() * 20 + 1).toFixed(2)),
+    category: categories[index % categories.length],
+    image: "/placeholder.ppng",
+  }));
 
   const filteredProducts = products.filter(
     (p) =>
@@ -141,14 +170,14 @@ export default function POS() {
               <p>Loading categories...</p>
             </div>
           ) : (
-            ["All", ...categories].map((cat) => (
+            [{ id: null, name: "All" }, ...categories].map((cat) => (
               <Button
-                key={cat}
-                variant={cat === selectedCategory ? "default" : "outline"}
-                onClick={() => setSelectedCategory(cat)}
+                key={cat?.id ?? "all"}
+                variant={cat?.id === selectedCategory ? "default" : "outline"}
+                onClick={() => setSelectedCategory(cat?.id)}
                 className="whitespace-nowrap"
               >
-                {cat}
+                {cat?.name}
               </Button>
             ))
           )}
