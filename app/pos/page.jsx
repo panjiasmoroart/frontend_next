@@ -55,6 +55,39 @@ export default function POS() {
 
   // console.log("Filtered Products : ", filteredProducts);
 
+  const addToCart = (product) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [...prev, { ...product, quantity: 1 }];
+      }
+    });
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateQuantity = (id, qty) => {
+    if (qty < 1) {
+      return removeFromCart(id);
+    }
+
+    setCart((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, quantity: qty } : item))
+    );
+  };
+
+  // useEffect(() => {
+  //   console.log(cart);
+  // }, [cart]);
+
   return (
     <div className="flex flex-col md:flex-row h-screen relative bg-background text-foreground">
       {/* Cart Toggle Button for small screens */}
@@ -165,11 +198,11 @@ export default function POS() {
           </Button>
         </div>
 
-        {/* {cart.length === 0 && (
+        {cart.length === 0 && (
           <p className="text-muted-foreground">Cart is empty</p>
-        )} */}
+        )}
 
-        {/* {cart.map((item) => (
+        {cart.map((item) => (
           <div key={item.id} className="py-2 border-b">
             <div className="flex justify-between items-center">
               <div>
@@ -212,7 +245,7 @@ export default function POS() {
               </Button>
             </div>
           </div>
-        ))} */}
+        ))}
 
         {/* {cart.length > 0 && (
           <div className="mt-6">
