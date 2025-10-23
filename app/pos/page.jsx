@@ -84,6 +84,17 @@ export default function POS() {
     );
   };
 
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.quantity * item.price,
+    0
+  );
+  const discountRate = 0.05; // 5%
+  const taxRates = 0.1; // 10%
+
+  const discounts = subtotal * discountRate;
+  const tax = (subtotal - discounts) * taxRates;
+  const total = subtotal - discounts + tax;
+
   // useEffect(() => {
   //   console.log(cart);
   // }, [cart]);
@@ -247,7 +258,7 @@ export default function POS() {
           </div>
         ))}
 
-        {/* {cart.length > 0 && (
+        {cart.length > 0 && (
           <div className="mt-6">
             <div className="flex justify-between text-sm mb-1">
               <span>Subtotal:</span>
@@ -282,11 +293,11 @@ export default function POS() {
               <span>Total:</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            <Button className="w-full mt-4" onClick={handleSave}>
+            {/* <Button className="w-full mt-4" onClick={handleSave}>
               {saving ? "Saving..." : "Checkout"}
-            </Button>
+            </Button> */}
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );
