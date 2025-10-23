@@ -59,7 +59,7 @@ export default function POS() {
     try {
       const params = new URLSearchParams();
 
-      // params.append("populate[0]", "image");
+      params.append("populate[0]", "image");
 
       if (debouncedSearch) {
         params.append("filters[name][$containsi]", debouncedSearch);
@@ -240,7 +240,11 @@ export default function POS() {
                 className="w-full cursor-pointer overflow-hidden rounded-lg border border-primary shadow-sm p-0 hover:opacity-80"
               >
                 <img
-                  src="/product.png"
+                  // src="/product.png"
+                  src={
+                    process.env.NEXT_PUBLIC_STRAPI_URL + product.image.url ||
+                    "/product.png"
+                  }
                   alt="Product Image"
                   width={600}
                   height={400}
