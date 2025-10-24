@@ -38,6 +38,7 @@ export default function POS() {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [saving, setSaving] = useState(false);
   const { status } = useSession();
 
   const fetchCategories = async () => {
@@ -169,6 +170,53 @@ export default function POS() {
   // useEffect(() => {
   //   console.log(cart);
   // }, [cart]);
+
+  async function handleSave(data) {
+    if (cart.length === 0) {
+      toast.error("At least one product is required.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const salePayload = {
+        customer_name: "POS Customer",
+        invoice_number: "0",
+        date: new Date(),
+        notes: "POS Customer",
+        products: cart.map((item) => ({
+          product: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subtotal,
+        discount_amount: discount,
+        tax_amount: tax,
+        total,
+      };
+
+      const saleResponse = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/sale-transactions`,
+        {
+          data: salePayload,
+        }
+      );
+
+      if (!saleResponse.data.data?.id) {
+        throw new Error("Failed to create sale.");
+      }
+
+      setCart([]);
+      toast.success("Invoice and stock updated successfully!");
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      toast.error(
+        `Transaction failed: ${error.message || "An error occurred."}`
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen relative bg-background text-foreground">
@@ -368,9 +416,9 @@ export default function POS() {
               <span>Total:</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            {/* <Button className="w-full mt-4" onClick={handleSave}>
+            <Button className="w-full mt-4" onClick={handleSave}>
               {saving ? "Saving..." : "Checkout"}
-            </Button> */}
+            </Button>
           </div>
         )}
       </div>
